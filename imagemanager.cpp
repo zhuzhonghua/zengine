@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "imagemanager.h"
+#include "image.h"
 
 using namespace Zengine;
 
@@ -13,7 +14,7 @@ void ImageManager::setRender(SDL_Renderer* renderer)
 }
 
 // TODO: cache
-SDL_Texture* ImageManager::getSolid(int width, int height, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
+Image* ImageManager::getSolid(int width, int height, Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
   Uint32 rmask, gmask, bmask, amask;
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
@@ -40,5 +41,5 @@ SDL_Texture* ImageManager::getSolid(int width, int height, Uint8 r, Uint8 g, Uin
   
   SDL_FreeSurface(img);
 
-  return tex;
+  return new Image(tex);
 }

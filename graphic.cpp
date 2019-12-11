@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "graphic.h"
+#include "image.h"
 
 using namespace Zengine;
 
@@ -21,7 +22,7 @@ void Graphic::clearRender()
 	SDL_RenderClear(render);
 }
 
-void Graphic::renderCopy(SDL_Texture* tex, Rect* src, Rect* dst)
+void Graphic::renderCopy(Image* img, Rect* src, Rect* dst)
 {
-	SDL_RenderCopy(render, tex, src, dst);
+	SDL_RenderCopy(render, img->getTex(), src, dst);
 }
