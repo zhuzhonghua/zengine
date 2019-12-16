@@ -1,6 +1,6 @@
 #pragma once
 
-#include <unordered_map>
+#include <map>
 #include "util.h"
 
 namespace Zengine{
@@ -22,8 +22,8 @@ public:
 private:
   bool wasKeyDown(unsigned int key);
 
-  std::unordered_map<unsigned int, bool> _keys;
-  std::unordered_map<unsigned int, bool> _previousKeys;
+  std::map<unsigned int, bool> _keys;
+  std::map<unsigned int, bool> _previousKeys;
 
   Point _mouseCoords;
 };

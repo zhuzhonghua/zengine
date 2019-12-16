@@ -11,7 +11,7 @@ InputManager::InputManager()
 void InputManager::update()
 {
   _previousKeys.clear();
-  std::unordered_map<unsigned int, bool>::iterator itr = _keys.begin();
+  std::map<unsigned int, bool>::iterator itr = _keys.begin();
   for (; itr != _keys.end(); itr++)
   {
     _previousKeys[itr->first] = itr->second;
@@ -34,7 +34,7 @@ void InputManager::setMouseCoords(float x, float y)
 
 bool InputManager::isKeyDown(unsigned int key)
 {
-  std::unordered_map<unsigned int, bool>::iterator itr = _keys.find(key);
+  std::map<unsigned int, bool>::iterator itr = _keys.find(key);
   if (itr != _keys.end())
   {
     return itr->second;
@@ -56,7 +56,7 @@ bool InputManager::isKeyPressed(unsigned int key)
 
 bool InputManager::wasKeyDown(unsigned int key)
 {
-  std::unordered_map<unsigned int, bool>::iterator itr = _previousKeys.find(key);
+  std::map<unsigned int, bool>::iterator itr = _previousKeys.find(key);
   if (itr != _previousKeys.end()){
     return itr->second;
   }
