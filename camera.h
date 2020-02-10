@@ -1,28 +1,74 @@
 #pragma once
 
-#include "util.h"
+#include <vector>
+#include "glm/glm.hpp"
 
-class Camera{
+#include "define.h"
+
+#include "gizmo.h"
+
+namespace Zengine{
+class Visual;
+
+class Camera :public Gizmo{
 public:
-  Camera();
-  Point getPos();
-  void setPos(Point p);
+	Camera(int x, int y, int width, int height, float zoom);
+	virtual	~Camera();
 
-  Point screenToWorld(Point p);
-  Point worldToScreen(Point p);
+	static Camera* reset(Camera* newCamera);
+	static Camera* add(Camera* camera);
+	static Camera* remove(Camera* camera);
+	static Camera* createFullscreen(float zoom);
+	static Camera* reset() {
+		return reset(createFullscreen(1));
+	}
+	static void updateAll();
 
-  Rect worldToScreenRect(Rect rect);
-  void zoomIn(float d);
-  void zoomOut(float d);
+	void resize(int width, int height);
+	PointF center() { return PointF(width / 2, height / 2); }
+	bool hitTest(float x, float y) { return x >= this->x && y >= this->y && x < (this->x + screenWidthf) && y < (this->y + screenHeightf); }
+	void focusOn(float x, float y);
+	void focusOn(PointF p) { focusOn(p.x, p.y); }
+	void focusOn(Visual* visual);
+	void shake(float magnitude, float duration) { _shakeMagX = _shakeMagY = magnitude; _shakeTime = _shakeDuration = duration; }
+	float screenHeight() { return height*zoomf; }
+	float screenWidth() { return width * zoomf; }
+	Point cameraToScreen(float x, float y) { return Point((x - scroll.x)*zoomf + this->x, (y - scroll.y)*zoomf + this->y); }
+	PointF screenToCamera(int x, int y) { return PointF((x - this->x) / zoomf + scroll.x, (y - this->y) / zoomf + scroll.y); }
 
-  float getZoom() { return zoom; }
+	void zoom(float value, float fx, float fy);
+	void zoom(float value);
+	void update();
+	virtual void updateMatrix();
 
-  static Camera* getMain();
-  static void setMain(Camera* camera);
+	float zoomf;
+
+	int x;
+	int y;
+	int width;
+	int height;
+
+	int screenWidthf;
+	int screenHeightf;
+
+	PointF	scroll;
+	Visual* target;
+	Matrix	mat;
+
+	static Camera* mainCamera;
 protected:
-  Point pos;
+	static std::vector<Camera*> _all;
+	static float _invW2;
+	static float _invH2;
 
-  float zoom;
+	
 
-  static Camera* mainCamera;
+	float _shakeX;
+	float _shakeY;
+private:
+	float _shakeMagX;
+	float _shakeMagY;
+	float _shakeTime;
+	float _shakeDuration;
 };
+}

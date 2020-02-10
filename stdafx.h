@@ -12,6 +12,9 @@
 #include <iostream>
 #include <boost/random.hpp>
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
 static inline void fatalError(std::string info)
 {
   std::cout << info << std::endl;
@@ -25,4 +28,15 @@ static inline void fatalError(std::string info)
 typedef SDL_Rect Rect;
 typedef SDL_Point Point;
 
-#include "util.h"
+
+typedef glm::vec2 PointF;
+typedef glm::ivec2 Point;
+typedef glm::mat4 Matrix;
+typedef glm::vec4 RectF;
+typedef glm::ivec4 Rect;
+
+typedef unsigned char byte;
+typedef unsigned short Uint16;
+
+#define INT_MAX_VALUE 0x3FFFFFFF
+
