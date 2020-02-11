@@ -32,7 +32,5 @@ protected:
 
 	bool _dirty;
 	RectF _frame;
-
-	std::vector<float> _vertices;
 };
-}
+};

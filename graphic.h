@@ -10,6 +10,7 @@ public:
 	static void renderCopy(Image* img, Rect* src, Rect* dst);
 	
 	static void setRender(SDL_Renderer* renderer);
+	static SDL_Renderer* getRender();
 protected:
 	static SDL_Renderer* render;
 };

@@ -1,13 +1,13 @@
 #include "stdafx.h"
 
 #include "image.h"
-#include "noosascript.h"
 #include "texturecache.h"
 #include "util.h"
 
+using namespace Zengine;
+
 Image::Image() :Visual(0,0,0,0)
 {
-	_vertices.resize(16);
 	flipVertical = false;
 	flipHorizontal = false;
 }

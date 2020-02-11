@@ -12,6 +12,11 @@ void Graphic::setRender(SDL_Renderer* renderer)
 	render = renderer;
 }
 
+SDL_Renderer* Graphic::getRender()
+{
+	return render;
+}
+
 void Graphic::setDrawColor(Uint8 r, Uint8 g, Uint8 b, Uint8 a)
 {
 	SDL_SetRenderDrawColor(render, r, g, b, a);

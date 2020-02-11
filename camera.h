@@ -3,8 +3,6 @@
 #include <vector>
 #include "glm/glm.hpp"
 
-#include "define.h"
-
 #include "gizmo.h"
 
 namespace Zengine{
