@@ -25,8 +25,8 @@ static inline void fatalError(std::string info)
   exit(1);
 }
 
-typedef SDL_Rect Rect;
-typedef SDL_Point Point;
+//typedef SDL_Rect Rect;
+//typedef SDL_Point Point;
 
 
 typedef glm::vec2 PointF;

@@ -1,6 +1,7 @@
+#include "stdafx.h"
 #include "scene.h"
 
-using namesapce Zengine;
+using namespace Zengine;
 
 Scene::Scene()
 {

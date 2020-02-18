@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include "imagemanager.h"
 #include "image.h"
+#include "smarttexture.h"
 
 using namespace Zengine;
 
@@ -37,9 +38,9 @@ Image* ImageManager::getSolid(int width, int height, Uint8 r, Uint8 g, Uint8 b, 
   rect.w = width;
   rect.h = height;  
   SDL_FillRect(img, &rect, SDL_MapRGBA(img->format, r, g, b, a));  
-  SDL_Texture* tex = SDL_CreateTextureFromSurface(render, img);
+  //SDL_Texture* tex = SDL_CreateTextureFromSurface(render, img);
   
-  SDL_FreeSurface(img);
+  //SDL_FreeSurface(img);
 
-  return new Image(tex);
+  return new Image(new SmartTexture(img));
 }

@@ -27,7 +27,7 @@ void Graphic::clearRender()
 	SDL_RenderClear(render);
 }
 
-void Graphic::renderCopy(Image* img, Rect* src, Rect* dst)
+void Graphic::renderCopy(Image* img, SDL_Rect* src, SDL_Rect* dst)
 {
-	SDL_RenderCopy(render, img->getTex(), src, dst);
+	SDL_RenderCopy(render, img->tex->tex, src, dst);
 }
