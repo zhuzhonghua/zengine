@@ -38,7 +38,7 @@ void Game::init()
 {
 	SDL_Init(SDL_INIT_EVERYTHING);
 	_window = SDL_CreateWindow("Zengine", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-														 _width, _height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN );
+														 width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
   _renderer = SDL_CreateRenderer(_window, -1, 0);
 		
 	TTF_Init();

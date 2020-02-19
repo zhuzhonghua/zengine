@@ -3,6 +3,7 @@
 #include "image.h"
 #include "texturecache.h"
 #include "util.h"
+#include "graphic.h"
 
 using namespace Zengine;
 
@@ -26,13 +27,14 @@ Image::Image(const Image* other) : Image()
 Image::Image(SmartTexture* other) : Image()
 {
 	tex = other;
-	frame(RectF(0, 0, 1, 1));
+	// TODO: 
+	//frame(Utils::rect(0, 0, 1, 1));
 }
-// TODO: coordinate
-Image::Image(const std::string& tx, int left, int top, int width, int height) : Image(tx)
-{
-	frame(tex->uvRect(left,top,left+width,top+height));
-}
+//// TODO: coordinate
+//Image::Image(const std::string& tx, int left, int top, int width, int height) : Image(tx)
+//{
+//	frame(tex->uvRect(left,top,left+width,top+height));
+//}
 
 Image::Image(const std::string& tx) : Image()
 {
@@ -42,13 +44,13 @@ Image::Image(const std::string& tx) : Image()
 void Image::texture(const std::string& tx)
 {
 	tex = TextureCache::getTexture(tx);
-	frame(RectF(0, 0, 1, 1));
+	frame(Utils::rect(0, 0, 1, 1));
 }
 
 void Image::texture(SmartTexture* tx)
 {
 	tex = tx;
-	frame(RectF(0, 0, 1, 1));
+	frame(Utils::rect(0, 0, 1, 1));
 }
 
 void Image::copy(const Image& other)
@@ -65,21 +67,22 @@ void Image::copy(const Image& other)
 	updateVertices();
 }
 
-void Image::frame(const RectF& frame)
+void Image::frame(const Rect& frame)
 {
 	this->_frame = frame;
-	
-	width = GameMath::RECTFWidth(frame) * tex->width;
-	height = GameMath::RECTFHeight(frame) * tex->height;
+
+	// TODO: 
+	//width = GameMath::RECTFWidth(frame) * tex->width;
+	//height = GameMath::RECTFHeight(frame) * tex->height;
 	
 	updateFrame();
 	updateVertices();
 }
 
-void Image::frame(int left, int top, int width, int height)
-{
-	frame(tex->uvRect(left, top, left + width, top + height));
-}
+//void Image::frame(int left, int top, int width, int height)
+//{
+//	frame(tex->uvRect(left, top, left + width, top + height));
+//}
 
 void Image::draw()
 {

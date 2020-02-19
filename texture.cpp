@@ -2,6 +2,9 @@
 #include "texture.h"
 
 #include "util.h"
+#include "graphic.h"
+
+using namespace Zengine;
 
 Texture::Texture()
 {

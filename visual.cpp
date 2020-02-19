@@ -32,12 +32,12 @@ void Visual::updateMotion()
 {
 	float elapsed = Game::elapsed;
 
-	float d = (GameMath::speed(speed.x, acc.x) - speed.x) / 2;
+	float d = (Utils::speed(speed.x, acc.x) - speed.x) / 2;
 	speed.x += d;
 	x += speed.x * elapsed;
 	speed.x += d;
 
-	d = (GameMath::speed(speed.y, acc.y) - speed.y) / 2;
+	d = (Utils::speed(speed.y, acc.y) - speed.y) / 2;
 	speed.y += d;
 	y += speed.y * elapsed;
 	speed.y += d;
@@ -65,12 +65,12 @@ void Visual::updateMatrix()
 	if (angle != 0)
 	{
 		//_mat = glm::rotate(_mat, angle);
-		GameMath::MATRIXRotate(_mat, angle);
+		Utils::MATRIXRotate(_mat, angle);
 	}
 	if (scale.x != 1 || scale.y != 1)
 	{
 		//_mat = glm::scale(Matrix(1.0f), glm::vec3(scale.x, scale.y, 0))*_mat;
-		GameMath::MATRIXScale(_mat, scale.x, scale.y);
+		Utils::MATRIXScale(_mat, scale.x, scale.y);
 	}
 	_mat = glm::translate(_mat, glm::vec3(-origin.x,-origin.y,0));
 }

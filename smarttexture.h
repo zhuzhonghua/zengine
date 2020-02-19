@@ -10,8 +10,6 @@ public:
 	SmartTexture(SDL_Surface* img);
 	SmartTexture(const std::string& bitmap);
 
-	RectF uvRect(int left, int top, int right, int bottom);
-
 	virtual void bitmap(const std::string& bitmap);
 };
 

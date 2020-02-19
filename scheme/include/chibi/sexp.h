@@ -13,9 +13,15 @@ extern "C" {
 #endif
 
 #define SEXP_MODULE_PATH_VAR "CHIBI_MODULE_PATH"
+#define SEXP_NO_SYSTEM_PATH_VAR "CHIBI_IGNORE_SYSTEM_PATH"
 
 #include "chibi/features.h"
+#ifndef __SDL__
 #include "chibi/install.h"
+#endif
+
+
+#ifndef __SDL__
 
 #ifdef _WIN32
 #include <windows.h>
@@ -54,6 +60,10 @@ extern "C" {
 #define sexp_isdigit(x) (isdigit(x))
 #define sexp_tolower(x) (tolower(x))
 #define sexp_toupper(x) (toupper(x))
+#endif
+
+#else
+#include "sdl_h.h"
 #endif
 
 #if SEXP_USE_GC_FILE_DESCRIPTORS
@@ -195,6 +205,7 @@ enum sexp_types {
   SEXP_STACK,
   SEXP_CONTEXT,
   SEXP_CPOINTER,
+  SEXP_UNIFORM_VECTOR,
 #if SEXP_USE_AUTO_FORCE
   SEXP_PROMISE,
 #endif
@@ -209,18 +220,16 @@ enum sexp_types {
 #endif
 
 #ifdef _WIN32
-#if defined(_MSC_VER) && SEXP_64_BIT
-/* On SEXP_64_BIT, 128bits arithmetic is mandatory */
-#error Unsupported configuration
-#endif
 #if SEXP_64_BIT
 typedef unsigned int sexp_tag_t;
 typedef unsigned long long sexp_uint_t;
 typedef long long sexp_sint_t;
+#define SEXP_PRIdFIXNUM "lld"
 #else
 typedef unsigned short sexp_tag_t;
 typedef unsigned int sexp_uint_t;
 typedef int sexp_sint_t;
+#define SEXP_PRIdFIXNUM "d"
 #endif
 #define sexp_heap_align(n) sexp_align(n, 5)
 #define sexp_heap_chunks(n) (sexp_heap_align(n)>>5)
@@ -228,18 +237,21 @@ typedef int sexp_sint_t;
 typedef unsigned int sexp_tag_t;
 typedef unsigned long sexp_uint_t;
 typedef long sexp_sint_t;
+#define SEXP_PRIdFIXNUM "ld"
 #define sexp_heap_align(n) sexp_align(n, 5)
 #define sexp_heap_chunks(n) (sexp_heap_align(n)>>5)
 #elif defined(__CYGWIN__)
 typedef unsigned short sexp_tag_t;
 typedef unsigned int sexp_uint_t;
 typedef int sexp_sint_t;
+#define SEXP_PRIdFIXNUM "d"
 #define sexp_heap_align(n) sexp_align(n, 5)
 #define sexp_heap_chunks(n) (sexp_heap_align(n)>>5)
 #else
 typedef unsigned short sexp_tag_t;
 typedef unsigned int sexp_uint_t;
 typedef int sexp_sint_t;
+#define SEXP_PRIdFIXNUM "d"
 #define sexp_heap_align(n) sexp_align(n, 4)
 #define sexp_heap_chunks(n) (sexp_heap_align(n)>>4)
 #endif
@@ -251,7 +263,7 @@ typedef int sexp_sint_t;
 
 
 #ifdef SEXP_USE_INTTYPES
-# include <inttypes.h>
+#include <stdint.h>
 # ifdef UINT8_MAX
 #  define SEXP_UINT8_DEFINED 1
 typedef uint8_t  sexp_uint8_t;
@@ -287,9 +299,9 @@ typedef short sexp_int32_t;
 #endif
 
 #if defined(__APPLE__) || defined(_WIN64) || (defined(__CYGWIN__) && __SIZEOF_POINTER__ == 8)
-#define PRIoff "%lld"
+#define SEXP_PRIdOFF "lld"
 #else
-#define PRIoff "%ld"
+#define SEXP_PRIdOFF "ld"
 #endif
 
 #if SEXP_USE_LONG_PROCEDURE_ARGS
@@ -422,12 +434,20 @@ struct sexp_struct {
       char data SEXP_FLEXIBLE_ARRAY;
     } bytes;
     struct {
+      unsigned char element_type;
+      sexp_sint_t length;
+      sexp bytes;
+    } uvector;
+    struct {
 #if SEXP_USE_PACKED_STRINGS
       sexp_uint_t length;
       char data SEXP_FLEXIBLE_ARRAY;
 #else
       sexp_uint_t offset, length;
       sexp bytes;
+#if SEXP_USE_STRING_INDEX_TABLE
+      sexp charlens;
+#endif
 #endif
     } string;
     struct {
@@ -487,10 +507,10 @@ struct sexp_struct {
       sexp bc, vars;
     } procedure;
     struct {
-      sexp proc, env, source;
+      sexp proc, env, source, aux;
     } macro;
     struct {
-      sexp env, free_vars, expr;
+      sexp env, free_vars, expr, rename;
     } synclo;
     struct {
       sexp file;
@@ -558,8 +578,7 @@ struct sexp_struct {
   } value;
 };
 
-#define SEXP_MAKE_IMMEDIATE(n)  ((sexp) ((n<<SEXP_EXTENDED_BITS) \
-                                          + SEXP_EXTENDED_TAG))
+#define SEXP_MAKE_IMMEDIATE(n)  ((sexp)((n<<SEXP_EXTENDED_BITS)	+ SEXP_EXTENDED_TAG))
 
 #define SEXP_FALSE  SEXP_MAKE_IMMEDIATE(0) /* 14 0x0e */
 #define SEXP_TRUE   SEXP_MAKE_IMMEDIATE(1) /* 30 0x1e */
@@ -737,6 +756,7 @@ union sexp_flonum_conv {
 SEXP_API sexp sexp_flonum_predicate (sexp ctx, sexp x);
 #if SEXP_64_BIT
 SEXP_API float sexp_flonum_value (sexp x);
+#define sexp_flonum_value_set(f, x) (f = sexp_make_flonum(NULL, x))
 #define sexp_flonum_bits(f) ((char*)&f)
 SEXP_API sexp sexp_make_flonum(sexp ctx, float f);
 #else
@@ -746,6 +766,7 @@ SEXP_API sexp sexp_make_flonum(sexp ctx, float f);
 #else
 #define sexp_flonump(x)      (sexp_check_tag(x, SEXP_FLONUM))
 #define sexp_flonum_value(f) ((f)->value.flonum)
+#define sexp_flonum_value_set(f, x) ((f)->value.flonum = x)
 #define sexp_flonum_bits(f) ((f)->value.flonum_bits)
 SEXP_API sexp sexp_make_flonum(sexp ctx, double f);
 #endif
@@ -799,6 +820,38 @@ SEXP_API sexp sexp_make_flonum(sexp ctx, double f);
 #define sexp_contextp(x)    (sexp_check_tag(x, SEXP_CONTEXT))
 #define sexp_promisep(x)    (sexp_check_tag(x, SEXP_PROMISE))
 #define sexp_ephemeronp(x)  (sexp_check_tag(x, SEXP_EPHEMERON))
+
+#if SEXP_USE_UNIFORM_VECTOR_LITERALS
+#define sexp_uvectorp(x)    (sexp_check_tag(x, SEXP_UNIFORM_VECTOR))
+#define sexp_u1vectorp(x)   (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_U1)
+#define sexp_u8vectorp(x)   (sexp_bytesp(x))
+#define sexp_s8vectorp(x)   (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_S8)
+#define sexp_u16vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_U16)
+#define sexp_s16vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_S16)
+#define sexp_u32vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_U32)
+#define sexp_s32vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_S32)
+#define sexp_u64vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_U64)
+#define sexp_s64vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_S64)
+#define sexp_f32vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_F32)
+#define sexp_f64vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_F64)
+#define sexp_c64vectorp(x)  (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_C64)
+#define sexp_c128vectorp(x) (sexp_uvectorp(x) && sexp_uvector_type(x)==SEXP_C128)
+#else
+#define sexp_uvectorp(x)    (sexp_vectorp(x))
+#define sexp_u1vectorp(x)   (sexp_vectorp(x))
+#define sexp_u8vectorp(x)   (sexp_bytesp(x))
+#define sexp_s8vectorp(x)   (sexp_vectorp(x))
+#define sexp_u16vectorp(x)  (sexp_vectorp(x))
+#define sexp_s16vectorp(x)  (sexp_vectorp(x))
+#define sexp_u32vectorp(x)  (sexp_vectorp(x))
+#define sexp_s32vectorp(x)  (sexp_vectorp(x))
+#define sexp_u64vectorp(x)  (sexp_vectorp(x))
+#define sexp_s64vectorp(x)  (sexp_vectorp(x))
+#define sexp_f32vectorp(x)  (sexp_vectorp(x))
+#define sexp_f64vectorp(x)  (sexp_vectorp(x))
+#define sexp_c64vectorp(x)  (sexp_vectorp(x))
+#define sexp_c128vectorp(x) (sexp_vectorp(x))
+#endif
 
 #define sexp_applicablep(x) (sexp_procedurep(x) || sexp_opcodep(x))
 
@@ -891,8 +944,15 @@ SEXP_API int sexp_idp(sexp x);
 #endif
 
 #if SEXP_USE_BIGNUMS
+SEXP_API sexp sexp_make_integer_from_lsint(sexp ctx, sexp_lsint_t x);
+SEXP_API sexp sexp_make_unsigned_integer_from_luint(sexp ctx, sexp_luint_t x);
+#if SEXP_USE_CUSTOM_LONG_LONGS
+#define sexp_make_integer(ctx, x) sexp_make_fixnum(x)
+#define sexp_make_unsigned_integer(ctx, x) sexp_make_fixnum(x)
+#else
 SEXP_API sexp sexp_make_integer(sexp ctx, sexp_lsint_t x);
 SEXP_API sexp sexp_make_unsigned_integer(sexp ctx, sexp_luint_t x);
+#endif
 #define sexp_exact_integerp(x) (sexp_fixnump(x) || sexp_bignump(x))
 #else
 #define sexp_make_integer(ctx, x) sexp_make_fixnum(x)
@@ -922,8 +982,12 @@ SEXP_API sexp sexp_make_unsigned_integer(sexp ctx, sexp_luint_t x);
 
 #if SEXP_USE_COMPLEX
 #define sexp_numberp(x) (sexp_realp(x) || sexp_complexp(x))
+#define sexp_real_part(x) (sexp_complexp(x) ? sexp_complex_real(x) : x)
+#define sexp_imag_part(x) (sexp_complexp(x) ? sexp_complex_imag(x) : SEXP_ZERO)
 #else
 #define sexp_numberp(x) (sexp_realp(x))
+#define sexp_real_part(x) (x)
+#define sexp_imag_part(x) SEXP_ZERO
 #endif
 
 #define sexp_exact_negativep(x) (sexp_fixnump(x) ? (sexp_unbox_fixnum(x) < 0) \
@@ -1028,7 +1092,42 @@ SEXP_API sexp sexp_make_unsigned_integer(sexp ctx, sexp_luint_t x);
 #define sexp_bytes_data(x)    (sexp_field(x, bytes, SEXP_BYTES, data))
 #define sexp_bytes_maybe_null_data(x) (sexp_not(x) ? NULL : sexp_bytes_data(x))
 
-#define sexp_string_size(x)   (sexp_field(x, string, SEXP_STRING, length))
+static const unsigned char sexp_uvector_sizes[] = {
+  0, 1, 8, 8, 16, 16, 32, 32, 64, 64, 32, 64, 64, 128};
+static const unsigned char sexp_uvector_chars[] = "#ususususuffcc";
+
+enum sexp_uniform_vector_type {
+  SEXP_NOT_A_UNIFORM_TYPE,
+  SEXP_U1,
+  SEXP_S8,
+  SEXP_U8,
+  SEXP_S16,
+  SEXP_U16,
+  SEXP_S32,
+  SEXP_U32,
+  SEXP_S64,
+  SEXP_U64,
+  SEXP_F32,
+  SEXP_F64,
+  SEXP_C64,
+  SEXP_C128
+};
+
+#define sexp_uvector_freep(x) (sexp_freep(x))
+#define sexp_uvector_element_size(uvt) (sexp_uvector_sizes[uvt])
+#define sexp_uvector_prefix(uvt) (sexp_uvector_chars[uvt])
+
+#define sexp_uvector_length(x) (sexp_field(x, uvector, SEXP_UNIFORM_VECTOR, length))
+#define sexp_uvector_type(x)   (sexp_field(x, uvector, SEXP_UNIFORM_VECTOR, element_type))
+#define sexp_uvector_data(x) sexp_bytes_data(sexp_uvector_bytes(x))
+#define sexp_uvector_maybe_null_data(x) (sexp_not(x) ? NULL : sexp_uvector_data(x))
+#define sexp_uvector_bytes(x)  (sexp_field(x, uvector, SEXP_UNIFORM_VECTOR, bytes))
+
+#define sexp_bit_ref(u1v, i)    (((sexp_uvector_data(u1v)[i/8])>>(i%8))&1)
+#define sexp_bit_set(u1v, i, x) (x ? (sexp_uvector_data(u1v)[i/8]|=(1<<(i%8))) : (sexp_uvector_data(u1v)[i/8]&=~(1<<(i%8))))
+
+#define sexp_string_size(x)     (sexp_field(x, string, SEXP_STRING, length))
+#define sexp_string_charlens(x) (sexp_field(x, string, SEXP_STRING, charlens))
 #if SEXP_USE_PACKED_STRINGS
 #define sexp_string_data(x)   (sexp_field(x, string, SEXP_STRING, data))
 #define sexp_string_bytes(x)  (x)
@@ -1119,10 +1218,12 @@ SEXP_API sexp sexp_make_unsigned_integer(sexp ctx, sexp_luint_t x);
 #define sexp_macro_proc(x)        (sexp_field(x, macro, SEXP_MACRO, proc))
 #define sexp_macro_env(x)         (sexp_field(x, macro, SEXP_MACRO, env))
 #define sexp_macro_source(x)      (sexp_field(x, macro, SEXP_MACRO, source))
+#define sexp_macro_aux(x)         (sexp_field(x, macro, SEXP_MACRO, aux))
 
 #define sexp_synclo_env(x)        (sexp_field(x, synclo, SEXP_SYNCLO, env))
 #define sexp_synclo_free_vars(x)  (sexp_field(x, synclo, SEXP_SYNCLO, free_vars))
 #define sexp_synclo_expr(x)       (sexp_field(x, synclo, SEXP_SYNCLO, expr))
+#define sexp_synclo_rename(x)     (sexp_field(x, synclo, SEXP_SYNCLO, rename))
 
 #define sexp_core_code(x)         (sexp_field(x, core, SEXP_CORE, code))
 #define sexp_core_name(x)         (sexp_field(x, core, SEXP_CORE, name))
@@ -1374,6 +1475,10 @@ enum sexp_context_globals {
   SEXP_G_QUASIQUOTE_SYMBOL,
   SEXP_G_UNQUOTE_SYMBOL,
   SEXP_G_UNQUOTE_SPLICING_SYMBOL,
+  SEXP_G_SYNTAX_SYMBOL,
+  SEXP_G_QUASISYNTAX_SYMBOL,
+  SEXP_G_UNSYNTAX_SYMBOL,
+  SEXP_G_UNSYNTAX_SPLICING_SYMBOL,
   SEXP_G_EMPTY_VECTOR,
   SEXP_G_CUR_IN_SYMBOL,
   SEXP_G_CUR_OUT_SYMBOL,
@@ -1499,6 +1604,7 @@ SEXP_API sexp sexp_alloc_tagged_aux(sexp ctx, size_t size, sexp_uint_t tag sexp_
 SEXP_API sexp sexp_make_context(sexp ctx, size_t size, size_t max_size);
 SEXP_API sexp sexp_cons_op(sexp ctx, sexp self, sexp_sint_t n, sexp head, sexp tail);
 SEXP_API sexp sexp_list2(sexp ctx, sexp a, sexp b);
+SEXP_API sexp sexp_list3(sexp ctx, sexp a, sexp b, sexp c);
 SEXP_API sexp sexp_equalp_bound (sexp ctx, sexp self, sexp_sint_t n, sexp a, sexp b, sexp depth, sexp bound);
 SEXP_API sexp sexp_equalp_op (sexp ctx, sexp self, sexp_sint_t n, sexp a, sexp b);
 SEXP_API sexp sexp_listp_op(sexp ctx, sexp self, sexp_sint_t n, sexp obj);
@@ -1512,6 +1618,7 @@ SEXP_API sexp sexp_length_op(sexp ctx, sexp self, sexp_sint_t n, sexp ls);
 SEXP_API sexp sexp_c_string(sexp ctx, const char *str, sexp_sint_t slen);
 SEXP_API sexp sexp_make_ephemeron_op(sexp ctx, sexp self, sexp_sint_t n, sexp key, sexp value);
 SEXP_API sexp sexp_make_bytes_op(sexp ctx, sexp self, sexp_sint_t n, sexp len, sexp i);
+SEXP_API sexp sexp_make_uvector_op(sexp ctx, sexp self, sexp_sint_t n, sexp elt_type, sexp len);
 SEXP_API sexp sexp_make_string_op(sexp ctx, sexp self, sexp_sint_t n, sexp len, sexp ch);
 SEXP_API sexp sexp_substring_op (sexp ctx, sexp self, sexp_sint_t n, sexp str, sexp start, sexp end);
 SEXP_API sexp sexp_subbytes_op (sexp ctx, sexp self, sexp_sint_t n, sexp str, sexp start, sexp end);
@@ -1523,6 +1630,7 @@ SEXP_API sexp sexp_string_to_number_op (sexp ctx, sexp self, sexp_sint_t n, sexp
 SEXP_API sexp sexp_flonump_op (sexp ctx, sexp self, sexp_sint_t n, sexp x);
 SEXP_API sexp sexp_make_vector_op (sexp ctx, sexp self, sexp_sint_t n, sexp len, sexp dflt);
 SEXP_API sexp sexp_list_to_vector_op (sexp ctx, sexp self, sexp_sint_t n, sexp ls);
+SEXP_API sexp sexp_list_to_uvector_op (sexp ctx, sexp self, sexp_sint_t n, sexp etype, sexp ls);
 SEXP_API sexp sexp_make_cpointer (sexp ctx, sexp_uint_t type_id, void* value, sexp parent, int freep);
 SEXP_API int sexp_is_separator(int c);
 SEXP_API sexp sexp_write_op (sexp ctx, sexp self, sexp_sint_t n, sexp obj, sexp out);
@@ -1532,7 +1640,7 @@ SEXP_API sexp sexp_read_symbol (sexp ctx, sexp in, int init, int internp);
 SEXP_API sexp sexp_read_number (sexp ctx, sexp in, int base, int exactp);
 #if SEXP_USE_BIGNUMS
 SEXP_API sexp sexp_read_bignum (sexp ctx, sexp in, sexp_uint_t init,
-				signed char sign, sexp_uint_t base);
+                                signed char sign, sexp_uint_t base);
 SEXP_API sexp sexp_write_bignum (sexp ctx, sexp a, sexp out, sexp_uint_t base);
 #endif
 SEXP_API sexp sexp_read_float_tail(sexp ctx, sexp in, double whole, int negp);
@@ -1579,6 +1687,7 @@ SEXP_API sexp sexp_stack_trace_op (sexp ctx, sexp self, sexp_sint_t n, sexp out)
 SEXP_API sexp sexp_apply (sexp context, sexp proc, sexp args);
 SEXP_API sexp sexp_apply1 (sexp ctx, sexp f, sexp x);
 SEXP_API sexp sexp_apply2 (sexp ctx, sexp f, sexp x, sexp y);
+SEXP_API sexp sexp_apply3 (sexp ctx, sexp f, sexp x, sexp y, sexp z);
 SEXP_API sexp sexp_apply_no_err_handler (sexp ctx, sexp proc, sexp args);
 SEXP_API sexp sexp_make_trampoline (sexp ctx, sexp proc, sexp args);
 SEXP_API sexp sexp_make_foreign (sexp ctx, const char *name, int num_args, int flags, const char *fname, sexp_proc1 f, sexp data);
@@ -1616,6 +1725,12 @@ SEXP_API int sexp_write_utf8_char (sexp ctx, int c, sexp out);
 #define sexp_string_length(s) sexp_string_size(s)
 #define sexp_substring(ctx, s, i, j) sexp_substring_op(ctx, NULL, 3, s, i, j)
 #define sexp_substring_cursor(ctx, s, i, j) sexp_substring_op(ctx, NULL, 3, s, i, j)
+#endif
+
+#if SEXP_USE_STRING_INDEX_TABLE
+SEXP_API void sexp_update_string_index_lookup(sexp ctx, sexp s);
+#else
+#define sexp_update_string_index_lookup(ctx, s)
 #endif
 
 #if SEXP_USE_GREEN_THREADS
@@ -1711,12 +1826,18 @@ SEXP_API int sexp_poll_port(sexp ctx, sexp port, int inputp);
 #define sexp_append2(ctx, a, b) sexp_append2_op(ctx, NULL, 2, a, b)
 #define sexp_make_vector(ctx, a, b) sexp_make_vector_op(ctx, NULL, 2, a, b)
 #define sexp_list_to_vector(ctx, x) sexp_list_to_vector_op(ctx, NULL, 1, x)
+#define sexp_list_to_uvector(ctx, etype, ls) sexp_list_to_uvector_op(ctx, NULL, 2, etype, ls)
 #define sexp_exception_type(ctx, x) sexp_exception_type_op(ctx, NULL, 1, x)
 #define sexp_string_to_symbol(ctx, s) sexp_string_to_symbol_op(ctx, NULL, 1, s)
 #define sexp_string_to_number(ctx, s, b) sexp_string_to_number_op(ctx, NULL, 2, s, b)
 #define sexp_symbol_to_string(ctx, s) sexp_symbol_to_string_op(ctx, NULL, 1, s)
 #define sexp_make_ephemeron(ctx, k, v) sexp_make_ephemeron_op(ctx, NULL, 2, k, v)
 #define sexp_make_bytes(ctx, l, i) sexp_make_bytes_op(ctx, NULL, 2, l, i)
+#if SEXP_USE_UNIFORM_VECTOR_LITERALS
+#define sexp_make_uvector(ctx, et, l) sexp_make_uvector_op(ctx, NULL, 2, et, l)
+#else
+#define sexp_make_uvector(ctx, et, l) sexp_make_vector(ctx, l, SEXP_ZERO)
+#endif
 #define sexp_make_string(ctx, l, c) sexp_make_string_op(ctx, NULL, 2, l, c)
 #define sexp_subbytes(ctx, a, b, c) sexp_subbytes_op(ctx, NULL, 3, a, b, c)
 #define sexp_string_concatenate(ctx, ls, s) sexp_string_concatenate_op(ctx, NULL, 2, ls, s)

@@ -18,8 +18,8 @@ public:
 	void texture(SmartTexture* tx);
 	void texture(const std::string& tx);
 	void copy(const Image& other);
-	RectF frame() { return _frame; }
-	virtual void frame(const RectF& frame);
+	Rect frame() { return _frame; }
+	virtual void frame(const Rect& frame);
 	void frame(int left, int top, int width, int height);
 	void draw();
 
@@ -31,6 +31,6 @@ protected:
 	virtual void updateFrame();
 
 	bool _dirty;
-	RectF _frame;
+	Rect _frame;
 };
 };

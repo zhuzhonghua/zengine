@@ -2,6 +2,8 @@
 
 #include <SDL.h>
 #include <SDL_image.h>
+#include "SDL_ttf.h"
+#include "SDL_mixer.h"
 
 #include <map>
 #include <set>
@@ -25,15 +27,14 @@ static inline void fatalError(std::string info)
   exit(1);
 }
 
-//typedef SDL_Rect Rect;
+typedef SDL_Rect Rect;
 //typedef SDL_Point Point;
 
 
 typedef glm::vec2 PointF;
 typedef glm::ivec2 Point;
 typedef glm::mat4 Matrix;
-typedef glm::vec4 RectF;
-typedef glm::ivec4 Rect;
+
 
 typedef unsigned char byte;
 typedef unsigned short Uint16;

@@ -6,15 +6,6 @@
 
 using namespace Zengine;
 
-RectF SmartTexture::uvRect(int left, int top, int right, int bottom)
-{
-	return GameMath::RECTF(
-		(float)left / width,
-		(float)top / height,
-		(float)right / width,
-		(float)bottom / height);
-}
-
 void SmartTexture::bitmap(const std::string& bp)
 {
 	Texture::bitmap(bp);

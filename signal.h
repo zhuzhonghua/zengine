@@ -23,7 +23,7 @@ public:
 
 	void add(Listener* listener)
 	{
-		std::vector<Listener*>::iterator itr = std::find(_listeners.begin(), _listeners.end(), listener);
+		typename std::vector<Listener*>::iterator itr = std::find(_listeners.begin(), _listeners.end(), listener);
 		if (itr == _listeners.end())
 		{
 			if (_stackMode)
@@ -39,7 +39,7 @@ public:
 
 	void remove(Listener* listener) 
 	{
-		std::vector<Listener*>::iterator itr = std::find(_listeners.begin(), _listeners.end(), listener);
+		typename std::vector<Listener*>::iterator itr = std::find(_listeners.begin(), _listeners.end(), listener);
 		if (itr != _listeners.end())
 		{
 			_listeners.erase(itr);
