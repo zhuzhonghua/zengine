@@ -1,14 +1,12 @@
 #pragma once
 
-#include <vector>
-#include "glm/glm.hpp"
-
+#include "stdafx.h"
 #include "gizmo.h"
 
 namespace Zengine{
 class Visual;
 
-class Camera :public Gizmo{
+class Camera :public Gizmo {
 public:
 	Camera(int x, int y, int width, int height, float zoom);
 	virtual	~Camera();

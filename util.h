@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stdafx.h"
+
 namespace Zengine{
 class SimpleRand{
 public:
