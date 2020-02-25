@@ -163,14 +163,20 @@ void Game::update()
 {
 	Game::elapsed = Game::timeScale * _step * 0.001f;
 
-	_scene->update();
+	if (_scene != NULL)
+	{
+		_scene->update();
+	}
 
 	Camera::updateAll();
 }
 
 void Game::draw()
 {
-	_scene->draw();
+	if (_scene != NULL)
+	{
+		_scene->draw();
+	}
 }
 
 void Game::finish()

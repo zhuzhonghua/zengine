@@ -25,7 +25,7 @@ public:
 	static GameState state;
 
 	Game();
-	~Game();
+	virtual ~Game();
 
 	void init();
 	void run();
