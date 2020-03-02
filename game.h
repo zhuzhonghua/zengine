@@ -31,8 +31,8 @@ public:
 	void run();
 	void processInput();
 public:
-	static void switchScene(Scene* sce);
-	static Scene* scene() { return instance->_scene; }
+	void switchScene(Scene* sce);
+	Scene* scene() { return _scene; }
 
 	static void vibrate(int milliseconds);
 

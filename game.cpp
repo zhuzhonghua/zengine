@@ -122,8 +122,8 @@ void Game::processInput()
 
 void Game::switchScene(Scene* sce)
 {
-	instance->_requestedScene = sce;
-	instance->_requestedReset = true;
+	_requestedScene = sce;
+	_requestedReset = true;
 }
 
 void Game::vibrate(int milliseconds)
