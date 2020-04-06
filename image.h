@@ -27,6 +27,7 @@ public:
 	bool flipHorizontal;
 	bool flipVertical;
 protected:
+	void init();
 	void updateVertices();
 	virtual void updateFrame();
 

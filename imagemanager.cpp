@@ -5,6 +5,18 @@
 
 using namespace Zengine;
 
+ImageManager* ImageManager::_inst;
+
+ImageManager* ImageManager::inst()
+{
+  if (_inst == NULL)
+  {
+    _inst = new ImageManager();
+  }
+
+  return _inst;
+}
+
 ImageManager::ImageManager()
 {
 }

@@ -9,23 +9,26 @@ using namespace Zengine;
 
 Image::Image() :Visual(0,0,0,0)
 {
-	flipVertical = false;
-	flipHorizontal = false;
+	init();
 }
 
-Image::Image(const Image& other) : Image()
+Image::Image(const Image& other):Visual(0,0,0,0)
 {
+	init();
 	copy(other);
 }
 
-Image::Image(const Image* other) : Image()
+Image::Image(const Image* other):Visual(0,0,0,0)
 {
+	init();
 	copy(*other);
 	delete other;
 }
 
-Image::Image(SmartTexture* other) : Image()
+Image::Image(SmartTexture* other):Visual(0,0,0,0)
 {
+	init();
+
 	tex = other;
 	// TODO: 
 	//frame(Utils::rect(0, 0, 1, 1));
@@ -36,9 +39,16 @@ Image::Image(SmartTexture* other) : Image()
 //	frame(tex->uvRect(left,top,left+width,top+height));
 //}
 
-Image::Image(const std::string& tx) : Image()
+Image::Image(const std::string& tx):Visual(0,0,0,0)
 {
+	init();
 	texture(tx);
+}
+
+void Image::init()
+{
+	flipVertical = false;
+	flipHorizontal = false;
 }
 
 void Image::texture(const std::string& tx)
