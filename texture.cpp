@@ -1,8 +1,8 @@
-#include "stdafx.h"
+#include "zengine.h"
 #include "texture.h"
 
 #include "util.h"
-#include "graphic.h"
+#include "game.h"
 
 using namespace Zengine;
 
@@ -10,6 +10,16 @@ Texture::Texture()
 {
 	texSrc = NULL;
 	tex = NULL;	
+}
+
+Texture::Texture(const std::string& path)
+{
+	bitmap(path);
+}
+
+Texture::Texture(SDL_Surface* img)
+{
+	bitmap(img);
 }
 
 Texture::~Texture()
@@ -42,7 +52,7 @@ void Texture::bitmap(SDL_Surface* img)
 	height = img->h;
 
 	texSrc = img;
-	tex = SDL_CreateTextureFromSurface(Graphic::getRender(), img);
+	tex = SDL_CreateTextureFromSurface(Game::inst()->getRender(), img);
 }
 
 int Texture::getPixel(int x, int y)
@@ -117,10 +127,11 @@ void Texture::setPixel(int x, int y, int color)
 		break;
 	}
 
-	if (tex != NULL)
-	{
-		SDL_DestroyTexture(tex);
-	}
-	
-	tex = SDL_CreateTextureFromSurface(Graphic::getRender(), texSrc);
+	SDL_UpdateTexture(tex, NULL, texSrc->pixels, texSrc->pitch);
+	//if (tex != NULL)
+	//{
+	//	SDL_DestroyTexture(tex);
+	//}
+	//
+	//tex = SDL_CreateTextureFromSurface(Game::inst()->getRender(), texSrc);
 }

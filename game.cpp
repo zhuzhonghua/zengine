@@ -1,12 +1,12 @@
-#include "stdafx.h"
+#include "zengine.h"
 #include "game.h"
 #include "timing.h"
-#include "touchscreen.h"
+#include "listenermanager.h"
 
 using namespace Zengine;
 
-int Game::width = 640;
-int Game::height = 960;
+int Game::width = 960;
+int Game::height = 640;
 
 float Game::timeScale = 1.0f;
 float Game::elapsed = 0.0f;
@@ -16,6 +16,21 @@ Game* Game::instance = NULL;
 float Game::density = 1;
 
 GameState Game::state = GameState::PLAY;
+
+Game* Game::inst()
+{
+	return instance;
+}
+
+int Game::getWidth()
+{
+	return width;
+}
+
+int Game::getHeignt()
+{
+	return height;
+}
 
 Game::Game()
 {
@@ -57,6 +72,8 @@ void Game::init()
 		std::string err = Mix_GetError();
 		fatalError("Mix_OpenAudio error " + err);
 	}
+
+  Camera::setMain(new Camera());
 }
 
 void Game::run()
@@ -69,6 +86,9 @@ void Game::run()
 	while (state == GameState::PLAY)
 	{
 		fps.begin();
+		
+		SDL_SetRenderDrawColor(_renderer, 0, 0, 0, 255);
+    SDL_RenderClear(_renderer);
 
 		long rightNowTick = SDL_GetTicks();
 		_step = (_now == 0 ? 0 : rightNowTick - _now);
@@ -100,23 +120,26 @@ void Game::processInput()
 			break;
 		case SDL_MOUSEMOTION:
 			_motionEvents.push_back(e);
+			_inputMgr.setMouseCoords(e.motion.x, e.motion.y);
 			break;
 		case SDL_KEYDOWN:
-			
+			_inputMgr.pressKey(e.key.keysym.sym);
 			break;
 		case SDL_KEYUP:
-			
+			_inputMgr.releaseKey(e.key.keysym.sym);
 			break;
 		case SDL_MOUSEBUTTONDOWN:
 			_motionEvents.push_back(e);
+			_inputMgr.pressKey(e.button.button);
 			break;
 		case SDL_MOUSEBUTTONUP:
 			_motionEvents.push_back(e);
+			_inputMgr.releaseKey(e.button.button);
 			break;
 		}
 	}
 
-	TouchScreen::processTouchEvents(_motionEvents);
+	ListenerManager::processEvents(_motionEvents);
 	_motionEvents.clear();
 }
 
@@ -133,7 +156,7 @@ void Game::vibrate(int milliseconds)
 
 void Game::switchScene()
 {
-	Camera::reset();
+	//Camera::reset();
 
 	if (_scene != NULL)
 	{
@@ -144,8 +167,8 @@ void Game::switchScene()
 	_scene = _requestedScene;
 	_scene->init();
 
-	Game::elapsed = 0.0f;
-	Game::timeScale = 1.0f;
+	//Game::elapsed = 0.0f;
+	//Game::timeScale = 1.0f;
 }
 
 void Game::step()
@@ -168,7 +191,7 @@ void Game::update()
 		_scene->update();
 	}
 
-	Camera::updateAll();
+	//Camera::updateAll();
 }
 
 void Game::draw()

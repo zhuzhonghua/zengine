@@ -15,7 +15,7 @@ public:
 
 	virtual Camera* camera() 
 	{
-		return Camera::mainCamera;
+		return Camera::getMain();
 	}
 
 	virtual void onBackPressed(){}

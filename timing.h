@@ -1,5 +1,6 @@
 #pragma once
 
+namespace Zengine{
 class FPSLimiter{
 public:
   FPSLimiter();
@@ -18,3 +19,4 @@ private:
   float _fps;
   unsigned int _startTicks;
 };
+}

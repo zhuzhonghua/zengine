@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 
+namespace Zengine{
 class SoundEffect{
 public:
   friend class AudioEngine;
@@ -42,3 +43,4 @@ private:
   std::map<std::string, Mix_Chunk*> _effectMap;
   std::map<std::string, Mix_Music*> _musicMap;
 };
+}

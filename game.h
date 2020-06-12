@@ -1,5 +1,6 @@
 #pragma  once
 #include "scene.h"
+#include "inputmanager.h"
 
 namespace Zengine{
 enum GameState
@@ -10,12 +11,16 @@ enum GameState
 
 class Game
 {
-public:	
+protected:
 	static Game* instance;
+	
+	Game();
+	
 	// Actual size of the screen
 	static int width;
 	static int height;
 
+	
 	// Density: mdpi=1, hdpi=1.5, xhdpi=2...
 	static float density;
 
@@ -23,13 +28,14 @@ public:
 	static float elapsed;
 
 	static GameState state;
-
-	Game();
+public:
+	static Game* inst();
 	virtual ~Game();
 
 	void init();
 	void run();
 	void processInput();
+
 public:
 	void switchScene(Scene* sce);
 	Scene* scene() { return _scene; }
@@ -39,10 +45,14 @@ public:
 	void finish();
 
 	SDL_Renderer* getRender() { return _renderer; }
+	InputManager* getInputMgr() { return &_inputMgr; }
+	
+	static int getWidth();
+	static int getHeignt();
 protected:
 	void switchScene();
-	void step();
-	void update();
+	virtual void step();
+	virtual void update();
 	void draw();
 
 protected:
@@ -56,6 +66,8 @@ protected:
 protected:
 	SDL_Window* _window;
   SDL_Renderer* _renderer;
+	
+  InputManager _inputMgr;
 
 	std::vector<SDL_Event>	_motionEvents;
 };

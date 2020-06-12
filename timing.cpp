@@ -2,6 +2,8 @@
 
 #include <SDL.h>
 
+using namespace Zengine;
+
 FPSLimiter::FPSLimiter()
 {
 
