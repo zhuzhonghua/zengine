@@ -1,19 +1,24 @@
 #pragma once
 #include <boost/random.hpp>
 #include "simpledefine.h"
+#include <stdlib.h>
 
 namespace Zengine{
-class SimpleRand{
+class IntRand{
 public:
-  SimpleRand(int min, int max);
-  SimpleRand();
+  IntRand(int minInclude, int maxExclude);
   
-  int getIntRnd();
-  double getDoubleRnd();
+  int getInt();
 protected:
-  boost::random::mt19937 _randEngine;
-  boost::random::uniform_int_distribution<> _rndInt;
-  boost::random::uniform_real_distribution<> _rndDouble;
+  int min;
+  int max;
+};
+
+class DoubleRand{
+public:
+  DoubleRand();
+  
+  double getDouble();
 };
 
 class Utils{

@@ -4,25 +4,25 @@
 
 using namespace Zengine;
 
-SimpleRand::SimpleRand()
-  :_rndDouble(0, 1)
+IntRand::IntRand(int minInclude, int maxExclude)
+  :min(minInclude), max(maxExclude)
 {
 }
 
-SimpleRand::SimpleRand(int min, int max)
-  :_rndInt(min, max)
+int IntRand::getInt()
+{
+  return (rand() % (max-min))+ min;
+}
+
+DoubleRand::DoubleRand()
 {
 }
 
-double SimpleRand::getDoubleRnd()
+double DoubleRand::getDouble()
 {
-  return _rndDouble(_randEngine);
+  return rand() / double(RAND_MAX);
 }
 
-int SimpleRand::getIntRnd()
-{
-  return _rndInt(_randEngine);
-}
 
 Rect Utils::rect(int x, int y, int w, int h)
 {

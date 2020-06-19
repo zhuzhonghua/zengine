@@ -1,6 +1,7 @@
 #pragma  once
 #include "scene.h"
 #include "inputmanager.h"
+#include <time.h> 
 
 namespace Zengine{
 enum GameState
@@ -32,7 +33,7 @@ public:
 	static Game* inst();
 	virtual ~Game();
 
-	void init();
+	virtual void init();
 	void run();
 	void processInput();
 

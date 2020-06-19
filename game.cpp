@@ -42,6 +42,8 @@ Game::Game()
 
 	_now = 0;
 	_step = 0;
+
+	srand((unsigned)time(NULL)); 
 }
 
 Game::~Game()
